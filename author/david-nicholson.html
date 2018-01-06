@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>NickleDave - David Nicholson</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">NickleDave </a></h1>
+                <nav><ul>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href="/initial-neural-net-results.html">"initial neural net results"</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2017-03-27T00:00:00-04:00">
+                Published: Mon 27 March 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/david-nicholson.html">David Nicholson</a>
+        </address>
+<p>In <a href="/category/misc.html">misc</a>.</p>
+
+</footer><!-- /.post-info --><p>My quest to build the birdsong autolabeler continues.</p>
+<p>Here's initial results showing how well a simple convolutional neural
+network (CNN) classifies birdsong syllables compared to my previous results obtained 
+with a support vector machine (SVM).</p>
+<p><img width="750" title="svm v. cnn" alt="svm v. cnn" src="/images/svm_v_flatwindow.jpg"></p>
+<p>I trained the CNN on the samples I had used previously to train the SVM.
+In three out of four birds whose song I tested, the CNN always
+achieved higher accuracy than the SVM. In the remaining
+bird, the SVM was able to obtain comparable accuracy, given
+enough training data.
+But notice that in all four cases the neural network obtained higher accuracies
+ with less training data! Bottom line: the neural net lets you do less work.</p>
+<p>I obtained these results with the script <a href="https://github.com/NickleDave/hybrid-vocal-classifier/blob/master/scripts/experiments/flatwindow_using_MLcomp_dataset.py">flatwindow_using_MLcomp_dataset.py</a>. This script is a prototype of the generic "train" script for the package I'm developing, <a href="https://github.com/NickleDave/hybrid-vocal-classifier">hybrid-vocal-classifier(HVC)</a>. If you really want to dig into the results in the shelve (database) files that script outputs, they're <a href="https://drive.google.com/open?id=0B0BKW2mh0ySnc3pHelhrNzh1NGc">here</a>, along with the csv files with training history and hdf5 files with the weights for each CNN trained. You can also test the CNNs trained on song from bird with ID 'gy6or6' on the audio files of his song in the <a href="https://github.com/NickleDave/hybrid-vocal-classifier/tree/master/tests/test_data/cbins">HVC test directory</a>.</p>
+<p>If you just want to reproduce the figure, here's code to do so by pulling the summary results from my not-Github-pages site:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+
+<span class="c1">#from Anaconda</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c1">#constants</span>
+<span class="n">DATA_URL</span> <span class="o">=</span> <span class="s1">&#39;http://www.nicholdav.info/static/results_dict.json&#39;</span>
+<span class="n">BIRD_NAMES_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;bird 1&#39;</span><span class="p">:</span><span class="s1">&#39;gr41rd51&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bird 2&#39;</span><span class="p">:</span><span class="s1">&#39;gy6or6&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bird 3&#39;</span><span class="p">:</span><span class="s1">&#39;or60yw70&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bird 4&#39;</span><span class="p">:</span><span class="s1">&#39;bl26lb16&#39;</span>
+    <span class="p">}</span>
+<span class="n">BIRD_NAME_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;bird 1&#39;</span><span class="p">,</span><span class="s1">&#39;bird 2&#39;</span><span class="p">,</span><span class="s1">&#39;bird 3&#39;</span><span class="p">,</span><span class="s1">&#39;bird 4&#39;</span><span class="p">]</span>
+<span class="n">NUM_SONGS_TO_TEST</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span><span class="mi">21</span><span class="p">,</span><span class="mi">27</span><span class="p">,</span><span class="mi">33</span><span class="p">,</span><span class="mi">39</span><span class="p">]</span>
+<span class="n">REPLICATES</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="c1"># i.e., [3,6,9,...15,21,27,33,39].</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">DATA_URL</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">results_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+<span class="c1">#plot lin-SVM, SVM-RBF, and k-NN all together on same graph</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">val</span><span class="p">,</span><span class="n">bird_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">BIRD_NAME_LIST</span><span class="p">):</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">val</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">results_key</span> <span class="o">=</span> <span class="n">BIRD_NAMES_DICT</span><span class="p">[</span><span class="n">bird_name</span><span class="p">]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">results_key</span><span class="p">]</span>
+
+    <span class="c1">#svm-rbf</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">,</span>
+                 <span class="n">results</span><span class="p">[</span><span class="s1">&#39;svm_Tach_test_avg_acc_mn&#39;</span><span class="p">],</span>
+                 <span class="n">yerr</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;svm_Tach_test_avg_acc_std&#39;</span><span class="p">],</span>
+                 <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;-k&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;SVM-RBF (Tach.)&#39;</span><span class="p">)</span>
+    <span class="n">svm_Tach_avg_acc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;svm_Tach_test_avg_acc&#39;</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">ind</span><span class="p">,</span><span class="n">x_tick</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">svm_Tach_avg_acc</span><span class="p">[:,</span><span class="n">ind</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">x_tick</span><span class="p">,</span><span class="mf">0.08</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;k.&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="c1">#flatwindow neural net</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">,</span>
+                 <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;flatwindow_avg_acc&#39;</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                 <span class="n">yerr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;flatwindow_avg_acc&#39;</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                 <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;ANN (flatwindow)&#39;</span><span class="p">)</span>
+    <span class="n">flatwindow_avg_acc</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;flatwindow_avg_acc&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ind</span><span class="p">,</span><span class="n">x_tick</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">flatwindow_avg_acc</span><span class="p">)[:,</span><span class="n">ind</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">x_tick</span><span class="p">,</span><span class="mf">0.08</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;r.&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">bird_name</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">((</span><span class="mi">97</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;number of songs used&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Average accuracy across labels</span><span class="se">\n</span><span class="s1"> (mean and std. dev.)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">w_pad</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">h_pad</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;C://workspace//hybrid-vocal-classifier//scripts//classify//svm_v_flatwindow.jpg&#39;</span><span class="p">)</span>
+</pre></div>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="/open-source-analysis-in-neuroscience-atlanta.html" rel="bookmark"
+                           title="Permalink to "Open-Source Analysis in Neuroscience, Atlanta"">"Open-Source Analysis in Neuroscience, Atlanta"</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-03-23T00:00:00-04:00">
+                Published: Thu 23 March 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/david-nicholson.html">David Nicholson</a>
+        </address>
+<p>In <a href="/category/misc.html">misc</a>.</p>
+
+</footer><!-- /.post-info -->                <h1>Open-Source Analysis in Neuroscience, Atlanta</h1>
+<p>Hands-on tutorials teaching you how to analyze data with open-source software, with a focus on neuroscience</p>
+<h2>Saturday, April 8th, 2017</h2>
+<h2><a href="https://www.google.com/maps/dir/''/1648+Pierce+Dr+NE,+Atlanta,+GA+30322/@33.7938878,-84.3242572,17z/data=!3m1!4b1!4m8!4m7!1m0!1m5!1m1!1s0x88f506fa0c2fe91d:0x39cfe7f977692e9b!2m2!1d-84.3220685!2d33.7938878?hl=en">Emory School of Medicine</a></h2>
+<h3>sponsored by the <a href="http://compneurosci.college.emory.edu/index.html">Computational Neuroscience Training Program grant</a></h3>
+<p>Each session will have 60 seats available.</p>
+<p><strong>Please note that you can RSVP …</strong></p>
+                <a class="readmore" href="/open-source-analysis-in-neuroscience-atlanta.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+                </ol><!-- /#posts-list -->
+                </section><!-- /#content -->
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>links</h2>
+                        <ul>
+                            <li><a href="https://scholarblogs.emory.edu/soberlab/">Sober lab</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+
+                            <li><a href="https://github.com/NickleDave">Github</a></li>
+                            <li><a href="https://twitter.com/nicholdav">Twitter</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

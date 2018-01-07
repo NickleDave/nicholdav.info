@@ -14,12 +14,154 @@
         <header id="banner" class="body">
                 <h1><a href="/">NickleDave </a></h1>
                 <nav><ul>
+                    <li><a href="/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="/initial-neural-net-results.html">"initial neural net results"</a></h1>
+                    <h1 class="entry-title"><a href="/neural-network-segment-birdsong.html">Getting a neural network to learn how to segment birdsong into syllables</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2018-01-04T10:15:00-05:00">
+                Published: Thu 04 January 2018
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/david-nicholson.html">David Nicholson</a>
+        </address>
+<p>In <a href="/category/articles.html">articles</a>.</p>
+<p>tags: <a href="/tag/birdsong.html">birdsong</a> <a href="/tag/syllable.html">syllable</a> <a href="/tag/segmentation.html">segmentation</a> <a href="/tag/neural-network.html">neural network</a> <a href="/tag/lstm.html">LSTM</a> <a href="/tag/cnn.html">CNN</a> </p>
+</footer><!-- /.post-info --><h1></h1>
+<h2>Introduction</h2>
+<p>In November, Yarden Cohen and I gave a <a href="https://youtu.be/1XEDFpUGmqs">talk at PyData NYC</a> 
+about segmenting vocalizations with neural networks. We are segmenting birdsong 
+into elements called syllables, although in principle the same thing can be done with human speech. 
+That is a harder problem, though, because in human speech
+ the beginning and end of a syllable is not as clearly defined
+ as it is in birdsong. Because the song of many bird species is more easily
+ segmented into syllables, we proposed that birdsong could provide a test bed for
+ benchmarking different neural net models for segmentation.</p>
+<p>We have some scientific questions about birdsong that we are using the neural 
+network to answer. I won't go into the details of that here, but I thought it 
+might be interesting for people to see the process we're going through to make 
+sure the network does what we want it to. I find a lot of tutorials on the web 
+that walk users through applying an established architecture to a toy problem, 
+but not a lot of writing about the process of developing a neural network for a 
+specific real-world application. So here's a sneak peek at the results I've been
+ sending to Yarden. Full disclosure: I'm also applying for the 
+ Google AI Residency and want to demonstrate what I've been working on.</p>
+<h3>the goal: segment birdsong into syllables</h3>
+<p>As I said, we are trying to segment birdsong into syllables.
+Let's look at some examples to see what I mean.
+Below are spectrograms of four songs from four birds, taken from an 
+<a href="https://figshare.com/articles/Bengalese_Finch_song_repository/4805749">open repository of Bengalese finch song</a>
+ shared by the lab that I work in,
+  []the Sober lab](https://scholarblogs.emory.edu/soberlab/).<br>
+If you haven't seen a spectrogram before, it is (in this context) just a way to 
+convert audio into an image, with frequencies on the Y axis and time on the X axis.</p>
+<p>Notice that each bird has a handful of repeating elements in its song
+ that we call <strong>syllables</strong>. Often when we want to study a birds' song, we
+ name these elements by giving them <strong>labels</strong>. The labels are mostly arbitrary: 
+ just because one syllable is labeled 'a' for bird 1 does not mean that it
+ resembles syllable 'a' from bird 2. All these birds are from the same species 
+ but each individual has its own song. (Typically a bird's adult song
+  resembles the song of the tutor that it learned from as a juvenile.)</p>
+<p><img alt="bird 1" width="750" src="../images/bird1.png" title="bird 1"></p>
+<p><img alt="bird 2" width="750" src="../images/bird2.png" title="bird 2"></p>
+<p><img alt="bird 3" width="750" src="../images/bird3.png" title="bird 3"></p>
+<p><img alt="bird 4" width="750" src="../images/bird4.png" title="bird 4"></p>
+<h3>how birdsong is typically segmented</h3>
+<p>Typically, scientists that study birdsong segment it into syllables with a simple algorithm:</p>
+<ol>
+<li>measure the amplitude of the sound
+<img alt="part 1" width="750" src="../images/part1.png" title="part 1"></li>
+<li>set a threshold and find all time points at which the amplitude is above that threshold.
+Call each continuous series of time points above threshold a syllable segment (<strong>pink</strong>);
+each series below the threshold is a silent period segment
+<img alt="part 2" width="750" src="../images/part2.png" title="part 1"></li>
+<li>set a minimum silent period duration; if the duration of any silent period segments are
+less than that minimum, they are removed and the two syllable segments that were on either 
+side of it are joined (<strong>red</strong>).</li>
+<li>set a minimum syllable duration, if any syllable segments are less than that minimum,
+they are discarded. The remaining syllable segments (<strong>dark red</strong>) are then given labels.
+<img alt="part 3" width="750" src="../images/part3.png" title="part 3">
+<img alt="part 4" width="750" src="../images/part4.png" title="part 4"></li>
+</ol>
+<p>For many species of songbird, this algorithm works fine.
+But if there is background noise, this algorithm can fail--e.g. if recording
+ birds in the wild or during a behavioral experiment where there are other sounds.
+  This algorithm also won't work for species that have elements of their song not
+  easily segmented into syllables by simply finding
+  where the amplitude crosses some threshold.</p>
+<h3>Network architecture: hybrid convolutional and bidirecitonal LSTM (CNN-biLSTM)</h3>
+<p>So we would like some machine learning magic to segment song for us, in a way that
+is robust to noise. Neural networks may not be the only algorithm that can do this,
+but they are definitely one of the first that come to mind. As I'll talk about in 
+the discussion, there are several neural network architectures that could be applied
+to segmenting song. The approach that Yarden developed combines <em>convolutional layers</em>,
+which are typically used for image recognition, with <em>recurrent layers</em>, which are
+supposed to be able to capture dependencies across time.</p>
+<p><a href="schematic">schematic</a></p>
+<p>As an input, it takes spectrograms, and then it outputs a class label
+ for each time bin in the spectrogram.
+ This implicitly gives us segmentation, because we find each continuous series
+  of one label and call that a segment.</p>
+<p>It is based on similar architectures described in these papers:
+You could also think of this as a generalization of 
+the hybrid deep neural networks-hidden Markov Model approach.</p>
+<h3>Error metrics: how do you know if you're doing a good job of segmenting?</h3>
+<p>There's a couple of error metrics we've been using.
+The first I'll call <strong>frame error rate</strong>, taking a cue from 
+<a href="ftp://ftp.idsia.ch/pub/juergen/nn_2005.pdf">Alex Graves</a>.
+As you might guess from the name, this metric looks at the label for
+every frame, i.e. every time bin, and asks whether it is correct.
+The metric gives you a sense of how well you're doing overall: if you
+have very low error you can assume you are correctly finding the right
+segments. But when you get some frames wrong, this metric does not tell
+you much about <em>where</em> you are getting things wrong.</p>
+<p>So on top of that metric which Yarden and I looked at initially, I have
+implemented the <strong>syllable error rate</strong>, by analogy with the
+<a href="https://en.wikipedia.org/wiki/Word_error_rate">word error rate</a> 
+often used for speech recognition.</p>
+<p>The syllable error rate is a normalized <em>edit distance</em> between the sequence
+of labels given to syllables in a song by a human annotator
+ and the sequence predicted by a machine learning algorithm.
+I am specifically using the Levenshtein <em>edit distance</em> which is the
+number of insertions, deletions, and substitutions required to convert
+the predicted labels into the actual labels from the ground truth set.
+This distance is normalized by dividing it by the number of syllables in the
+ ground truth set. The normalization makes it possible to compare across 
+ training sets of different sizes, e.g., if one bird sings 
+ many more syllable types than another.</p>
+<h3>Learning curves</h3>
+<p>To measure performance of the CNN-biLSTM, we're looking at learning curves, 
+which are simply plots of error as a function of training set size.</p>
+<p>You might be familiar with learning curves from their typical use within
+ a supervised learning context: to evaluate whether the classifier you're using
+  is underfitting the training data due to its high bias, or overfitting due to high variance.</p>
+<p>The reason we're plotting learning curves is to give someone studying songbirds an idea of how much training data they will need labeled by hand to achieve the desired accuracy in terms of segmentation and classification. It is more informative to see the accuracy across a range of training set sizes, rather than just one or two.</p>
+<p>Another reason to generate learning curves is an interesting use case, as proposed by Cortes et al. 1994:
+ to estimate which of two models will give better accuracy without actually training both models on a very large data set, which would be computationally expensive. This is done by measuring the accuracy for a range of smaller training data sets, and then fitting a curve to those accuracies. The parameters of the fit curve include the asymptote, which you can think of as the accuracy given infinite training data. You can then use points on the fit curve line to predict which model will do better when trained with the very large data set. Some of my analysis below makes use of such fit curves.</p>
+<h2>Results</h2>
+<h3>Framewise error rate suggests the network learns to accurately classify each time bin</h3>
+<p><img alt="framewise error" width="750" src="../figures/all_4_frame_error.png" title="framewise error"></p>
+<h3>The syllable error rate shows that this results in accurate segmentation</h3>
+<p><img alt="syllable error rate" width="750" src="../figures/all_4_syl_error.png" title="syllable error rate"></p>
+<h3>The network can learn long-term dependcies error decreases exponentially as a function of the number of time steps</h3>
+<h2>Discussion</h2>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="/initial-neural-net-results.html" rel="bookmark"
+                           title="Permalink to "initial neural net results"">"initial neural net results"</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2017-03-27T00:00:00-04:00">
                 Published: Mon 27 March 2017
@@ -28,89 +170,17 @@
         <address class="vcard author">
                 By                         <a class="url fn" href="/author/david-nicholson.html">David Nicholson</a>
         </address>
-<p>In <a href="/category/misc.html">misc</a>.</p>
+<p>In <a href="/category/articles.html">articles</a>.</p>
 
-</footer><!-- /.post-info --><p>My quest to build the birdsong autolabeler continues.</p>
+</footer><!-- /.post-info -->                <p>My quest to build the birdsong autolabeler continues.</p>
 <p>Here's initial results showing how well a simple convolutional neural
 network (CNN) classifies birdsong syllables compared to my previous results obtained 
 with a support vector machine (SVM).</p>
-<p><img width="750" title="svm v. cnn" alt="svm v. cnn" src="/images/svm_v_flatwindow.jpg"></p>
-<p>I trained the CNN on the samples I had used previously to train the SVM.
-In three out of four birds whose song I tested, the CNN always
-achieved higher accuracy than the SVM. In the remaining
-bird, the SVM was able to obtain comparable accuracy, given
-enough training data.
-But notice that in all four cases the neural network obtained higher accuracies
- with less training data! Bottom line: the neural net lets you do less work.</p>
-<p>I obtained these results with the script <a href="https://github.com/NickleDave/hybrid-vocal-classifier/blob/master/scripts/experiments/flatwindow_using_MLcomp_dataset.py">flatwindow_using_MLcomp_dataset.py</a>. This script is a prototype of the generic "train" script for the package I'm developing, <a href="https://github.com/NickleDave/hybrid-vocal-classifier">hybrid-vocal-classifier(HVC)</a>. If you really want to dig into the results in the shelve (database) files that script outputs, they're <a href="https://drive.google.com/open?id=0B0BKW2mh0ySnc3pHelhrNzh1NGc">here</a>, along with the csv files with training history and hdf5 files with the weights for each CNN trained. You can also test the CNNs trained on song from bird with ID 'gy6or6' on the audio files of his song in the <a href="https://github.com/NickleDave/hybrid-vocal-classifier/tree/master/tests/test_data/cbins">HVC test directory</a>.</p>
-<p>If you just want to reproduce the figure, here's code to do so by pulling the summary results from my not-Github-pages site:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">urllib.request</span>
-
-<span class="c1">#from Anaconda</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-
-<span class="c1">#constants</span>
-<span class="n">DATA_URL</span> <span class="o">=</span> <span class="s1">&#39;http://www.nicholdav.info/static/results_dict.json&#39;</span>
-<span class="n">BIRD_NAMES_DICT</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;bird 1&#39;</span><span class="p">:</span><span class="s1">&#39;gr41rd51&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;bird 2&#39;</span><span class="p">:</span><span class="s1">&#39;gy6or6&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;bird 3&#39;</span><span class="p">:</span><span class="s1">&#39;or60yw70&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;bird 4&#39;</span><span class="p">:</span><span class="s1">&#39;bl26lb16&#39;</span>
-    <span class="p">}</span>
-<span class="n">BIRD_NAME_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;bird 1&#39;</span><span class="p">,</span><span class="s1">&#39;bird 2&#39;</span><span class="p">,</span><span class="s1">&#39;bird 3&#39;</span><span class="p">,</span><span class="s1">&#39;bird 4&#39;</span><span class="p">]</span>
-<span class="n">NUM_SONGS_TO_TEST</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span><span class="mi">21</span><span class="p">,</span><span class="mi">27</span><span class="p">,</span><span class="mi">33</span><span class="p">,</span><span class="mi">39</span><span class="p">]</span>
-<span class="n">REPLICATES</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-<span class="c1"># i.e., [3,6,9,...15,21,27,33,39].</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">DATA_URL</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="n">results_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
-<span class="c1">#plot lin-SVM, SVM-RBF, and k-NN all together on same graph</span>
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">=</span><span class="p">[]</span>
-<span class="k">for</span> <span class="n">val</span><span class="p">,</span><span class="n">bird_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">BIRD_NAME_LIST</span><span class="p">):</span>
-    <span class="n">pos</span> <span class="o">=</span> <span class="n">val</span><span class="o">+</span><span class="mi">1</span>
-    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
-    <span class="n">results_key</span> <span class="o">=</span> <span class="n">BIRD_NAMES_DICT</span><span class="p">[</span><span class="n">bird_name</span><span class="p">]</span>
-    <span class="n">results</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">results_key</span><span class="p">]</span>
-
-    <span class="c1">#svm-rbf</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">,</span>
-                 <span class="n">results</span><span class="p">[</span><span class="s1">&#39;svm_Tach_test_avg_acc_mn&#39;</span><span class="p">],</span>
-                 <span class="n">yerr</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;svm_Tach_test_avg_acc_std&#39;</span><span class="p">],</span>
-                 <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;-k&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;SVM-RBF (Tach.)&#39;</span><span class="p">)</span>
-    <span class="n">svm_Tach_avg_acc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;svm_Tach_test_avg_acc&#39;</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">ind</span><span class="p">,</span><span class="n">x_tick</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">):</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">svm_Tach_avg_acc</span><span class="p">[:,</span><span class="n">ind</span><span class="p">]</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">x_tick</span><span class="p">,</span><span class="mf">0.08</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;k.&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-
-    <span class="c1">#flatwindow neural net</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">,</span>
-                 <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;flatwindow_avg_acc&#39;</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-                 <span class="n">yerr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;flatwindow_avg_acc&#39;</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-                 <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;ANN (flatwindow)&#39;</span><span class="p">)</span>
-    <span class="n">flatwindow_avg_acc</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;flatwindow_avg_acc&#39;</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">ind</span><span class="p">,</span><span class="n">x_tick</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">):</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">flatwindow_avg_acc</span><span class="p">)[:,</span><span class="n">ind</span><span class="p">]</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">x_tick</span><span class="p">,</span><span class="mf">0.08</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;r.&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-
-    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">bird_name</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">((</span><span class="mi">97</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">NUM_SONGS_TO_TEST</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;number of songs used&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Average accuracy across labels</span><span class="se">\n</span><span class="s1"> (mean and std. dev.)&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">w_pad</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">h_pad</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;C://workspace//hybrid-vocal-classifier//scripts//classify//svm_v_flatwindow.jpg&#39;</span><span class="p">)</span>
-</pre></div>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+<p><img alt="svm v. cnn" width="750" src="../images/svm_v_flatwindow.jpg" title="svm v. cnn"></p>
+<p>I trained the CNN on the samples I had used previously to train the SVM …</p>
+                <a class="readmore" href="/initial-neural-net-results.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>
@@ -127,7 +197,7 @@ But notice that in all four cases the neural network obtained higher accuracies
         <address class="vcard author">
                 By                         <a class="url fn" href="/author/david-nicholson.html">David Nicholson</a>
         </address>
-<p>In <a href="/category/misc.html">misc</a>.</p>
+<p>In <a href="/category/articles.html">articles</a>.</p>
 
 </footer><!-- /.post-info -->                <h1>Open-Source Analysis in Neuroscience, Atlanta</h1>
 <p>Hands-on tutorials teaching you how to analyze data with open-source software, with a focus on neuroscience</p>

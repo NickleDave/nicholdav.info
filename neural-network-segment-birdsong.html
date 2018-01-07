@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
         <meta charset="utf-8" />
-        <title>Getting a neural network to learn how to segment birdsong into syllables</title>
+        <title>Training a neural network to segment birdsong into syllables</title>
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
@@ -22,7 +22,7 @@
     <header>
       <h1 class="entry-title">
         <a href="/neural-network-segment-birdsong.html" rel="bookmark"
-           title="Permalink to Getting a neural network to learn how to segment birdsong into syllables">Getting a neural network to learn how to segment birdsong into syllables</a></h1>
+           title="Permalink to Training a neural network to segment birdsong into syllables">Training a neural network to segment birdsong into syllables</a></h1>
     </header>
 
     <div class="entry-content">
@@ -36,11 +36,12 @@
         </address>
 <p>In <a href="/category/articles.html">articles</a>.</p>
 <p>tags: <a href="/tag/birdsong.html">birdsong</a> <a href="/tag/syllable.html">syllable</a> <a href="/tag/segmentation.html">segmentation</a> <a href="/tag/neural-network.html">neural network</a> <a href="/tag/lstm.html">LSTM</a> <a href="/tag/cnn.html">CNN</a> </p>
-</footer><!-- /.post-info -->      <h1></h1>
-<h2>Introduction</h2>
+</footer><!-- /.post-info -->      <h2>Introduction</h2>
 <p>In November, Yarden Cohen and I gave a <a href="https://youtu.be/1XEDFpUGmqs">talk at PyData NYC</a> 
-about segmenting vocalizations with neural networks. We are segmenting birdsong 
-into elements called syllables, although in principle the same thing can be done with human speech. 
+about segmenting vocalizations with neural networks. 
+More specifically, we are segmenting birdsong 
+into elements called syllables,
+although in principle the same thing can be done with human speech. 
 That is a harder problem, though, because in human speech
  the beginning and end of a syllable is not as clearly defined
  as it is in birdsong. Because the song of many bird species is more easily
@@ -55,46 +56,62 @@ but not a lot of writing about the process of developing a neural network for a
 specific real-world application. So here's a sneak peek at the results I've been
  sending to Yarden. Full disclosure: I'm also applying for the 
  Google AI Residency and want to demonstrate what I've been working on.</p>
+<p>We are bravely coding in the open. If you want to see the code I've
+developed, with scripts for creating learning curves like those shown below,
+ you can check out my fork of Yarden's code:
+https://github.com/NickleDave/tf_syllable_segmentation_annotation
+If you are a songbird researcher and you'd like to try out the
+network on your own data, you might prefer to work with the Jupyter
+notebook that Yarden originally shared:
+https://github.com/yardencsGitHub/tf_syllable_segmentation_annotation</p>
 <h3>the goal: segment birdsong into syllables</h3>
 <p>As I said, we are trying to segment birdsong into syllables.
 Let's look at some examples to see what I mean.
 Below are spectrograms of four songs from four birds, taken from an 
 <a href="https://figshare.com/articles/Bengalese_Finch_song_repository/4805749">open repository of Bengalese finch song</a>
  shared by the lab that I work in,
-  []the Sober lab](https://scholarblogs.emory.edu/soberlab/).<br>
-If you haven't seen a spectrogram before, it is (in this context) just a way to 
-convert audio into an image, with frequencies on the Y axis and time on the X axis.</p>
+  <a href="https://scholarblogs.emory.edu/soberlab/">the Sober lab</a>.<br>
+If you haven't seen a spectrogram before, it is (in this context)<br>
+just an image of audio, with frequencies on the Y axis and time on the X axis.</p>
 <p>Notice that each bird has a handful of repeating elements in its song
- that we call <strong>syllables</strong>. Often when we want to study a birds' song, we
- name these elements by giving them <strong>labels</strong>. The labels are mostly arbitrary: 
- just because one syllable is labeled 'a' for bird 1 does not mean that it
- resembles syllable 'a' from bird 2. All these birds are from the same species 
- but each individual has its own song. (Typically a bird's adult song
-  resembles the song of the tutor that it learned from as a juvenile.)</p>
-<p><img alt="bird 1" width="750" src="../images/bird1.png" title="bird 1"></p>
-<p><img alt="bird 2" width="750" src="../images/bird2.png" title="bird 2"></p>
-<p><img alt="bird 3" width="750" src="../images/bird3.png" title="bird 3"></p>
-<p><img alt="bird 4" width="750" src="../images/bird4.png" title="bird 4"></p>
+ that we call <em>syllables</em>. Often when we want to study a bird's song, we
+ name these elements by giving them <strong>labels</strong>. The labels are arbitrary,
+ by which I mean that just because one syllable is labeled 'a' for bird 1
+ does not mean that it resembles syllable 'a' from bird 2. 
+ All these birds are from the same species but each individual has its own song.
+ (Typically a bird's adult song resembles the song of the tutor 
+ that it learned from as a juvenile.) We want our neural network 
+ to <em>generalize</em> across birds. I do not put a number here to how well 
+ the network generalizes in this sense, across individuals, but I will
+ point out that a lot of work has been done to derive metrics for how 
+ similar songs are within and across birds. To my knowledge, this has not 
+ been done for human speech, and no work has been done measuring how well 
+ neural networks for speech recognition generalize across speakers.</p>
+<p><img src="../images/bird1.png" title="bird 1" width="750" alt="bird 1"></p>
+<p><img src="../images/bird2.png" title="bird 2" width="750" alt="bird 2"></p>
+<p><img src="../images/bird3.png" title="bird 3" width="750" alt="bird 3"></p>
+<p><img src="../images/bird4.png" title="bird 4" width="750" alt="bird 4"></p>
 <h3>how birdsong is typically segmented</h3>
 <p>Typically, scientists that study birdsong segment it into syllables with a simple algorithm:</p>
 <ol>
-<li>measure the amplitude of the sound
-<img alt="part 1" width="750" src="../images/part1.png" title="part 1"></li>
+<li>measure the amplitude of the sound (as plotted below, in the axis under the spectrogram)
+<img src="../images/part1.png" title="part 1" width="750" alt="part 1"></li>
 <li>set a threshold and find all time points at which the amplitude is above that threshold.
-Call each continuous series of time points above threshold a syllable segment (<strong>pink</strong>);
-each series below the threshold is a silent period segment
-<img alt="part 2" width="750" src="../images/part2.png" title="part 1"></li>
+Call each continuous series of time points above threshold a syllable segment 
+(<strong>pink lines below</strong>); each series below the threshold is a silent period segment
+<img src="../images/part2.png" title="part 2" width="750" alt="part 2"></li>
 <li>set a minimum silent period duration; if the duration of any silent period segments are
 less than that minimum, they are removed and the two syllable segments that were on either 
-side of it are joined (<strong>red</strong>).</li>
+side of it are joined (<strong>red lines below</strong>).
+<img src="../images/part3.png" title="part 3" width="750" alt="part 3"></li>
 <li>set a minimum syllable duration, if any syllable segments are less than that minimum,
-they are discarded. The remaining syllable segments (<strong>dark red</strong>) are then given labels.
-<img alt="part 3" width="750" src="../images/part3.png" title="part 3">
-<img alt="part 4" width="750" src="../images/part4.png" title="part 4"></li>
+they are discarded. The remaining syllable segments (<strong>dark red lines below</strong>) 
+are then given labels.
+<img src="../images/part4.png" title="part 4" width="750" alt="part 4"></li>
 </ol>
 <p>For many species of songbird, this algorithm works fine.
-But if there is background noise, this algorithm can fail--e.g. if recording
- birds in the wild or during a behavioral experiment where there are other sounds.
+But if there is background noise, this algorithm can fail--e.g. when recording
+ birds in the wild or when there are other sounds present during a behavioral experiment.
   This algorithm also won't work for species that have elements of their song not
   easily segmented into syllables by simply finding
   where the amplitude crosses some threshold.</p>
@@ -105,54 +122,101 @@ but they are definitely one of the first that come to mind. As I'll talk about i
 the discussion, there are several neural network architectures that could be applied
 to segmenting song. The approach that Yarden developed combines <em>convolutional layers</em>,
 which are typically used for image recognition, with <em>recurrent layers</em>, which are
-supposed to be able to capture dependencies across time.</p>
-<p><a href="schematic">schematic</a></p>
-<p>As an input, it takes spectrograms, and then it outputs a class label
+often used to capture dependencies across time.</p>
+<p><img src="../images/cnn-bilstm.png" title="neural network schematic" width="400" alt="neural network schematic"></p>
+<p>As an input, the network takes spectrograms, and then it outputs a class label
  for each time bin in the spectrogram.
  This implicitly gives us segmentation, because we find each continuous series
   of one label and call that a segment.</p>
 <p>It is based on similar architectures described in these papers:
-You could also think of this as a generalization of 
-the hybrid deep neural networks-hidden Markov Model approach.</p>
-<h3>Error metrics: how do you know if you're doing a good job of segmenting?</h3>
-<p>There's a couple of error metrics we've been using.
-The first I'll call <strong>frame error rate</strong>, taking a cue from 
-<a href="ftp://ftp.idsia.ch/pub/juergen/nn_2005.pdf">Alex Graves</a>.
-As you might guess from the name, this metric looks at the label for
-every frame, i.e. every time bin, and asks whether it is correct.
-The metric gives you a sense of how well you're doing overall: if you
-have very low error you can assume you are correctly finding the right
-segments. But when you get some frames wrong, this metric does not tell
-you much about <em>where</em> you are getting things wrong.</p>
-<p>So on top of that metric which Yarden and I looked at initially, I have
-implemented the <strong>syllable error rate</strong>, by analogy with the
-<a href="https://en.wikipedia.org/wiki/Word_error_rate">word error rate</a> 
-often used for speech recognition.</p>
-<p>The syllable error rate is a normalized <em>edit distance</em> between the sequence
-of labels given to syllables in a song by a human annotator
- and the sequence predicted by a machine learning algorithm.
-I am specifically using the Levenshtein <em>edit distance</em> which is the
-number of insertions, deletions, and substitutions required to convert
-the predicted labels into the actual labels from the ground truth set.
-This distance is normalized by dividing it by the number of syllables in the
- ground truth set. The normalization makes it possible to compare across 
- training sets of different sizes, e.g., if one bird sings 
- many more syllable types than another.</p>
+S. Böck and M. Schedl, 
+"Polyphonic piano note transcription with recurrent neural networks,"
+2012 IEEE International Conference on Acoustics, 
+Speech and Signal Processing (ICASSP), Kyoto, 2012, pp. 121-124.</p>
+<p>Parascandolo, Huttunen, and Virtanen,
+“Recurrent Neural Networks for Polyphonic Sound Event Detection in Real Life Recordings.”</p>
+<p>You could also think of this as a generalization of the 
+<a href="https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/38131.pdf">hybrid deep neural networks-hidden Markov Model approach</a>.</p>
 <h3>Learning curves</h3>
 <p>To measure performance of the CNN-biLSTM, we're looking at learning curves, 
-which are simply plots of error as a function of training set size.</p>
+which are simply plots of error as a function of training set size.
+I'll talk more about the metrics we use for error below.</p>
 <p>You might be familiar with learning curves from their typical use within
  a supervised learning context: to evaluate whether the classifier you're using
   is underfitting the training data due to its high bias, or overfitting due to high variance.</p>
-<p>The reason we're plotting learning curves is to give someone studying songbirds an idea of how much training data they will need labeled by hand to achieve the desired accuracy in terms of segmentation and classification. It is more informative to see the accuracy across a range of training set sizes, rather than just one or two.</p>
-<p>Another reason to generate learning curves is an interesting use case, as proposed by Cortes et al. 1994:
- to estimate which of two models will give better accuracy without actually training both models on a very large data set, which would be computationally expensive. This is done by measuring the accuracy for a range of smaller training data sets, and then fitting a curve to those accuracies. The parameters of the fit curve include the asymptote, which you can think of as the accuracy given infinite training data. You can then use points on the fit curve line to predict which model will do better when trained with the very large data set. Some of my analysis below makes use of such fit curves.</p>
+<p>The reason we're plotting learning curves is to give someone studying songbirds 
+an idea of how much training data they will need labeled by hand to achieve a 
+desired accuracy. It is more informative 
+to see the accuracy across a range of training set sizes, rather than just one or two.</p>
+<p>Another reason to generate learning curves is to fit actual curves to the data points, 
+as proposed by Cortes et al. 1994.
+The authors propose fitting curves in order to estimate 
+which of two models will give better accuracy without actually 
+training both models on a very large data set, 
+which would be computationally expensive. 
+Instead they measure the accuracy for a range of smaller training data sets, 
+and then fit a curve to those accuracies. 
+The parameters of the fit curve 
+include the asymptote, which you can think of as the accuracy given infinite training data. 
+You can then use points on the fit curve line to predict which model will 
+do better when trained with the very large data set. 
+Some of my analysis below 
+makes use of the parameters from such fit curves.</p>
+<p>If you want to play around with fitting learning curves, the functions I use are in the
+<a href="https://github.com/NickleDave/tf_syllable_segmentation_annotation/blob/master/cnn_bilstm/curvefit.py">curvefit module</a> 
+and are based on a <a href="https://github.com/NickleDave/learning-curves/blob/master/Fit%20Your%20Learning%20Curves%20for%20Fun%20and%20Profit.ipynb">talk</a> 
+I gave about the Cortes et al. paper previously for <a href="https://jupyterday-atlanta-2016.github.io/">Jupyter Day Atlanta 2016</a>.</p>
 <h2>Results</h2>
-<h3>Framewise error rate suggests the network learns to accurately classify each time bin</h3>
-<p><img alt="framewise error" width="750" src="../figures/all_4_frame_error.png" title="framewise error"></p>
-<h3>The syllable error rate shows that this results in accurate segmentation</h3>
-<p><img alt="syllable error rate" width="750" src="../figures/all_4_syl_error.png" title="syllable error rate"></p>
-<h3>The network can learn long-term dependcies error decreases exponentially as a function of the number of time steps</h3>
+<h3>The frame error rate shows the network learns to accurately classify each time bin</h3>
+<p>The first metric we looked at I'll call <strong>frame error rate</strong>,
+ using the terminology of <a href="ftp://ftp.idsia.ch/pub/juergen/nn_2005.pdf">Alex Graves</a>.
+As you might guess from the name, this metric looks at the label for
+every frame, in this case every time bin of the spectrogram, 
+and asks whether it is correct.
+The metric gives you a sense of how well you're doing overall: if you
+have very low frame error rate, you can assume you are correctly finding the right
+segments. </p>
+<p>This figure presents learning curves for all four birds whose song is shown above:
+<img src="../figures/all_4_frame_error.png" title="frame error" width="750" alt="frame error">
+For all birds, the network achieves less than 3% error using 4 minutes of training data. </p>
+<p>By fitting curves to these points, we can estimate that, given enough data,
+the network would achieve  </p>
+<h3>The syllable error rate shows the network accurately segments and classifies syllables</h3>
+<p>Frame error does not tell us directly how well we are finding and classifying segments though.
+To measure how well words are classified in speech recognition tasks, researchers use the 
+<a href="https://en.wikipedia.org/wiki/Word_error_rate">word error rate</a>.
+Here I measure how well segments are classified as syllables, and by analogy, 
+I call that the <strong>syllable error rate</strong>.</p>
+<p>The syllable error rate is a normalized <em>edit distance</em> between the sequence
+of labels given to syllables in a song by a human annotator
+ and the sequence of labels predicted by a machine learning algorithm.
+I am specifically using the Levenshtein <em>edit distance</em>: 
+the number of insertions, deletions, and substitutions required to convert
+the predicted labels into the actual labels from the ground truth set.
+This distance is normalized by dividing it by the number of syllables in the
+ ground truth set. Normalization makes it possible to compare across 
+ training sets of different sizes, e.g., if one bird sings 
+ many more syllable types than another.</p>
+<p>This figure again presents learning curves for all four birds, but this time
+plotting the syllable error rate.
+For all four birds, the network achieves less than 0.3 syllable error rate 
+with 4 minutes of training data. For three of the four birds, the error rate drops to 0.1.</p>
+<p><img src="../figures/all_4_syl_error.png" title="syllable error rate" width="750" alt="syllable error rate"></p>
+<p>By comparison, the network of Koumura Okanoya 2016 requires 8 minutes of data 
+to achieve a 
+<a href="http://journals.plos.org/plosone/article/figure/image?size=large&amp;id=10.1371/journal.pone.0159188.t001">syllable error rate of 0.46</a>. </p>
+<h3>Close to perfect...but why not perfect?</h3>
+<p>These results suggest the network will give us good enough results to answer the scientific
+question we are interested in. Of course we will need to test quantitatively how
+error will affect our results, but my gut tells me we will not need to correct the 0.1 of
+syllables we may get wrong to see the effect we are interested in.
+In addition, Yarden has found that he can achieve near perfect accuracy by simply taking a 
+"majority vote" for each segment that has multiple labels within it.</p>
+<p>But still, what is the network getting wrong when it misclassifies some time bin?
+I did a little more work to get at that question, focusin on troublesome bird 3.</p>
+<h3>The drop in error decays exponentially as a function of  time steps decays</h3>
+<p>One possibility might be that the network does not capture enough of the long term 
+dependencies to properly classify </p>
 <h2>Discussion</h2>
     </div><!-- /.entry-content -->
 

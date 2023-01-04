@@ -12,7 +12,7 @@ var store = [{
         "teaser": null
       },{
         "title": "Bengalese finch song repository",
-        "excerpt":"A collection of song from four Bengalese finches recorded in the Sober lab at Emory University. Link:  https://figshare.com/articles/Bengalese_Finch_song_repository/4805749   Used with hybrid-vocal-classifier library to benchmark machine learning algorithms for labeling birdsong syllables  and later with the vak  library to benchmark the tweetynet neural network architecture, in this paper.  ","categories": [],
+        "excerpt":"A collection of song from four Bengalese finches recorded in the Sober lab at Emory University. Separate site for dataset: https://nickledave.github.io/bfsongrepo/ Link to data on FigShare: https://figshare.com/articles/Bengalese_Finch_song_repository/4805749 Used with hybrid-vocal-classifier library to benchmark machine learning algorithms for labeling birdsong syllables and later with the vak library to benchmark the tweetynet...","categories": [],
         "tags": [],
         "url": "/datasets/2017-10-18-bengalese-finch-song-repository",
         "teaser": null
@@ -23,22 +23,16 @@ var store = [{
         "url": "/how-to-use-jekyll-to-set-up-your-own-academic-website/",
         "teaser": null
       },{
-        "title": "Paper Title Number 1",
-        "excerpt":"This paper is about the number 1. The number 2 is left for future work.   Download paper here   Recommended citation: Your Name, You. (2009). “Paper Title Number 1.” Journal 1. 1(1).  ","categories": [],
+        "title": "Thalamostriatal and cerebellothalamic pathways in a songbird, the Bengalese finch",
+        "excerpt":"Abstract The thalamostriatal system is a major network in the mammalian brain, originating principally from the intralaminar nuclei of thalamus. Its functions remain unclear, but a subset of these projections provides a pathway through which the cerebellum communicates with the basal ganglia. Both the cerebellum and basal ganglia play crucial...","categories": [],
         "tags": [],
-        "url": "/publication/2009-10-01-paper-title-number-1",
+        "url": "/publication/2018-03-01-thalamostriatal",
         "teaser": null
       },{
-        "title": "Talk 1 on Relevant Topic in Your Field",
-        "excerpt":"This is a description of your talk, which is a markdown files that can be all markdown-ified like any other post. Yay markdown!  ","categories": [],
+        "title": "Neural Networks for Segmentation of Vocalizations",
+        "excerpt":"Neural networks for speech-to-text avoid dividing speech into segments, such as syllables, but segmenting has important applications. We compare different neural networks for segmentation of vocalizations using the song of songbirds, which we study as neuroscientists. Initial results suggest a bidirectional LSTM-CNN architecture outperforms others in both segmentation and classification....","categories": [],
         "tags": [],
-        "url": "/talks/2012-03-01-talk-1",
-        "teaser": null
-      },{
-        "title": "Tutorial 1 on Relevant Topic in Your Field",
-        "excerpt":"More information here   This is a description of your tutorial, note the different field in type. This is a markdown files that can be all markdown-ified like any other post. Yay markdown!  ","categories": [],
-        "tags": [],
-        "url": "/talks/2013-03-01-tutorial-1",
+        "url": "/talks/2017-11-27-neural-networks-for-segmentation-of-vocalizations",
         "teaser": null
       },{
         "title": "Teaching experience 1",

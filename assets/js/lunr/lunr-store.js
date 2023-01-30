@@ -26,7 +26,13 @@ var store = [{
         "title": "Thalamostriatal and cerebellothalamic pathways in a songbird, the Bengalese finch",
         "excerpt":"Abstract The thalamostriatal system is a major network in the mammalian brain, originating principally from the intralaminar nuclei of thalamus. Its functions remain unclear, but a subset of these projections provides a pathway through which the cerebellum communicates with the basal ganglia. Both the cerebellum and basal ganglia play crucial...","categories": [],
         "tags": [],
-        "url": "/publication/2018-03-01-thalamostriatal",
+        "url": "/publication/2018-03-09-thalamostriatal",
+        "teaser": null
+      },{
+        "title": "Automated annotation of birdsong with a neural network that segments spectrograms",
+        "excerpt":"Abstract Songbirds provide a powerful model system for studying sensory-motor learning. However, many analyses of birdsong require time-consuming, manual annotation of its elements, called syllables. Automated methods for annotation have been proposed, but these methods assume that audio can be cleanly segmented into syllables, or they require carefully tuning multiple...","categories": [],
+        "tags": [],
+        "url": "/publication/2022-01-20-automated-annotation",
         "teaser": null
       },{
         "title": "Neural Networks for Segmentation of Vocalizations",

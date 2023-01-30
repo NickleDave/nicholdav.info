@@ -35,15 +35,45 @@ var store = [{
         "url": "/publication/2022-01-20-automated-annotation",
         "teaser": null
       },{
+        "title": "Could simplified stimuli change how the brain performs visual search tasks? A deep neural network study",
+        "excerpt":"Abstract Visual search is a complex behavior influenced by many factors. To control for these factors, many studies use highly simplified stimuli. However, the statistics of these stimuli are very different from the statistics of the natural images that the human visual system is optimized by evolution and experience to...","categories": [],
+        "tags": [],
+        "url": "/publication/2022-06-could-simplified-stimuli",
+        "teaser": null
+      },{
         "title": "Neural Networks for Segmentation of Vocalizations",
         "excerpt":"Neural networks for speech-to-text avoid dividing speech into segments, such as syllables, but segmenting has important applications. We compare different neural networks for segmentation of vocalizations using the song of songbirds, which we study as neuroscientists. Initial results suggest a bidirectional LSTM-CNN architecture outperforms others in both segmentation and classification....","categories": [],
         "tags": [],
         "url": "/talks/2017-11-27-neural-networks-for-segmentation-of-vocalizations",
         "teaser": null
       },{
-        "title": "Teaching experience 1",
-        "excerpt":"This is a description of a teaching experience. You can use markdown like any other post.   Heading 1   Heading 2   Heading 3  ","categories": [],
+        "title": "Software Carpentry workshop",
+        "excerpt":"Organizer and instructor for workshop:  https://data-science-for-scientists-atl.github.io/2018-09-22-emory/  ","categories": [],
         "tags": [],
-        "url": "/teaching/2014-spring-teaching-1",
+        "url": "/teaching/2018-09-22-software-carpentry",
+        "teaser": null
+      },{
+        "title": "Software Carpentry workshop",
+        "excerpt":"Organizer and instructor for workshop:  https://data-science-for-scientists-atl.github.io/2019-02-09-emory/  ","categories": [],
+        "tags": [],
+        "url": "/teaching/2019-02-19-software-carpentry",
+        "teaser": null
+      },{
+        "title": "Software Carpentry workshop",
+        "excerpt":"Organizer and instructor for workshop:  https://data-science-for-scientists-atl.github.io/2019-11-23-emory/  ","categories": [],
+        "tags": [],
+        "url": "/teaching/2019-11-23-software-carpentry",
+        "teaser": null
+      },{
+        "title": "Software Carpentry workshop",
+        "excerpt":"Organizer and instructor for workshop:  https://data-science-for-scientists-atl.github.io/2021-01-19-Emory/  ","categories": [],
+        "tags": [],
+        "url": "/teaching/2022-01-19-software-carpentry",
+        "teaser": null
+      },{
+        "title": "Software Carpentry workshop",
+        "excerpt":"Organizer and instructor for workshop:  https://data-science-for-scientists-atl.github.io/2022-02-03-Emory/  ","categories": [],
+        "tags": [],
+        "url": "/teaching/2022-02-03-software-carpentry",
         "teaser": null
       }]

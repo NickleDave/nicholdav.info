@@ -41,10 +41,22 @@ var store = [{
         "url": "/publication/2022-06-could-simplified-stimuli",
         "teaser": null
       },{
+        "title": "hybrid-vocal-classifier: a Python Package to Automate Labeling of Birdsong for Behavioral Experiments",
+        "excerpt":"Talk on YouTube: https://youtu.be/BwNeVNou9-s Abstract Neuroscientists study songbirds to understand how the brain learns and produces motor skills. Like babies learning to talk, songbirds acquire their song socially during a critical period in development. To understand the neural basis of birdsong, neuroscientists carry out behavioral experiments. Often analysis requires labeling...","categories": [],
+        "tags": [],
+        "url": "/talks/2017-07-14-hybrid-vocal-classifier",
+        "teaser": null
+      },{
         "title": "Neural Networks for Segmentation of Vocalizations",
         "excerpt":"Neural networks for speech-to-text avoid dividing speech into segments, such as syllables, but segmenting has important applications. We compare different neural networks for segmentation of vocalizations using the song of songbirds, which we study as neuroscientists. Initial results suggest a bidirectional LSTM-CNN architecture outperforms others in both segmentation and classification....","categories": [],
         "tags": [],
         "url": "/talks/2017-11-27-neural-networks-for-segmentation-of-vocalizations",
+        "teaser": null
+      },{
+        "title": "Building & Replicating Models of Visual Search Behavior w/ Tensorflow, Nengo, & Scientific Python",
+        "excerpt":"Talk on YouTube: https://youtu.be/fCpQd_knWQg Abstract Animals constantly use their eyes to search their environment. What can neural networks and other cognitive models tell us about this behavior? We present two related studies that leverage scientific Python libraries to address this question. The first uses Tensorflow to replicate and extend a...","categories": [],
+        "tags": [],
+        "url": "/talks/2018-07-13-building-&-replicating-models",
         "teaser": null
       },{
         "title": "Software Carpentry workshop",

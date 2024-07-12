@@ -1,0 +1,440 @@
+<!doctype html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.24.0 by Michael Rose
+  Copyright 2013-2020 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+-->
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>Neural Networks for Segmentation of Vocalizations - nicholdav.info</title>
+<meta name="description" content="">
+
+
+  <meta name="author" content="David Aaron Nicholson">
+  
+  <meta property="article:author" content="David Aaron Nicholson">
+  
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="nicholdav.info">
+<meta property="og:title" content="Neural Networks for Segmentation of Vocalizations">
+<meta property="og:url" content="https://nicholdav.info//talks/2017-11-27-neural-networks-for-segmentation-of-vocalizations">
+
+
+  <meta property="og:description" content="">
+
+
+
+
+
+  <meta name="twitter:site" content="@nicholdav">
+  <meta name="twitter:title" content="Neural Networks for Segmentation of Vocalizations">
+  <meta name="twitter:description" content="">
+  <meta name="twitter:url" content="https://nicholdav.info//talks/2017-11-27-neural-networks-for-segmentation-of-vocalizations">
+
+  
+    <meta name="twitter:card" content="summary">
+    
+  
+
+  
+    <meta name="twitter:creator" content="@nicholdav">
+  
+
+
+
+  <meta property="article:published_time" content="2017-11-27T00:00:00-05:00">
+
+
+
+
+
+  
+
+  
+
+
+<link rel="canonical" href="https://nicholdav.info//talks/2017-11-27-neural-networks-for-segmentation-of-vocalizations">
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    
+      "@type": "Person",
+      "name": "David Nicholson",
+      "url": "https://nicholdav.info//"
+    
+  }
+</script>
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+
+  <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="nicholdav.info Feed">
+
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5/css/all.min.css"></noscript>
+
+
+
+    <!-- start custom head snippets -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  </head>
+
+  <body class="layout--single">
+    <nav class="skip-links">
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/">
+          nicholdav.info
+          
+        </a>
+        <ul class="visible-links"><li class="masthead__menu-item">
+              <a href="/">Home</a>
+            </li><li class="masthead__menu-item">
+              <a href="/about.html">About</a>
+            </li><li class="masthead__menu-item">
+              <a href="http://blog.nicholdav.info/">Blog</a>
+            </li></ul>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person" class="h-card">
+
+  
+    <div class="author__avatar">
+      <a href="https://nicholdav.info//">
+        <img src="/assets/images/selfie.jpg" alt="David Aaron Nicholson" itemprop="image" class="u-photo">
+      </a>
+    </div>
+  
+
+  <div class="author__content">
+    <h3 class="author__name p-name" itemprop="name">
+      <a class="u-url" rel="me" href="https://nicholdav.info//" itemprop="url">David Aaron Nicholson</a>
+    </h3>
+    
+      <div class="author__bio p-note" itemprop="description">
+        <p>Research software engineer with expertise in artificial intelligence and computational cognitive neuroscience</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name" class="p-locality">Charm City</span>
+        </li>
+      
+
+      
+
+      
+
+      
+        <li>
+          <a href="mailto:nicholdav@gmail.com" rel="me" class="u-email">
+            <meta itemprop="email" content="nicholdav@gmail.com" />
+            <i class="fas fa-fw fa-envelope-square" aria-hidden="true"></i><span class="label">Email</span>
+          </a>
+        </li>
+      
+
+      
+
+      
+        <li>
+          <a href="https://twitter.com/nicholdav" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+            <i class="fab fa-fw fa-twitter-square" aria-hidden="true"></i><span class="label">Twitter</span>
+          </a>
+        </li>
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+        <li>
+          <a href="https://github.com/NickleDave" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+            <i class="fab fa-fw fa-github" aria-hidden="true"></i><span class="label">GitHub</span>
+          </a>
+        </li>
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+        
+          <li>
+            <a href="https://www.youtube.com/channel/UCd8Xzg9GbvOaP6Q3ef_7pyg" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+              <i class="fab fa-fw fa-youtube" aria-hidden="true"></i><span class="label">YouTube</span>
+            </a>
+          </li>
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page h-entry" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="Neural Networks for Segmentation of Vocalizations">
+    <meta itemprop="description" content="">
+    <meta itemprop="datePublished" content="2017-11-27T00:00:00-05:00">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title p-name" itemprop="headline">
+            <a href="https://nicholdav.info//talks/2017-11-27-neural-networks-for-segmentation-of-vocalizations" class="u-url" itemprop="url">Neural Networks for Segmentation of Vocalizations
+</a>
+          </h1>
+          
+
+
+        </header>
+      
+
+      <section class="page__content e-content" itemprop="text">
+        
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/1XEDFpUGmqs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+
+<p>Neural networks for speech-to-text avoid dividing speech into segments, such as syllables, but segmenting has important applications. We compare different neural networks for segmentation of vocalizations using the song of songbirds, which we study as neuroscientists. Initial results suggest a bidirectional LSTM-CNN architecture outperforms others in both segmentation and classification.</p>
+
+<p>Talk on YouTube: <a href="https://youtu.be/1XEDFpUGmqs">https://youtu.be/1XEDFpUGmqs</a></p>
+
+<h2 id="abstract">Abstract</h2>
+<p>Neural networks for speech-to-text continue to set new records for accuracy. These networks succeed in large part because they explicitly avoid dealing with the issue of dividing speech into some sort of segment, like a syllable or a phoneme <sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup>. However there are many use cases, such as diagnosis of speech disorders, where automated segmentation could have great impact.</p>
+
+<p>One difficulty with speech segmentation is that it requires hand-segmented and labeled training data. In addition, in speech the beginning and end of syllables is often not clear. In contrast, the songs of many species of songbird consist of elements that are clearly separated by brief silences. Because of these brief silences, birdsong can typically be segmented automatically. Furthermore in many species an individual will have a small number of elements in their song, relative to the many different syllables and words that make up a language. Hence birdsong provides a convenient way to test different architectures that segment vocalizations and then label those segments.</p>
+
+<p>In this talk, we discuss our results comparing neural net architectures for segmentation of vocalizations, using an open repository of birdsong to benchmark them. These networks for segmentation also provide a useful tool for neuroscientists that study songbirds as a model system to understand how the brain learns speech and similar motor skills, as we will explain. Preliminary results suggest that a bidirectional LSTM-CNN network <sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">2</a></sup><sup id="fnref:3" role="doc-noteref"><a href="#fn:3" class="footnote" rel="footnote">3</a></sup><sup id="fnref:4" role="doc-noteref"><a href="#fn:4" class="footnote" rel="footnote">4</a></sup> outperforms other architectures, such as fully convolutional networks <sup id="fnref:5" role="doc-noteref"><a href="#fn:5" class="footnote" rel="footnote">5</a></sup><sup id="fnref:6" role="doc-noteref"><a href="#fn:6" class="footnote" rel="footnote">6</a></sup><sup id="fnref:7" role="doc-noteref"><a href="#fn:7" class="footnote" rel="footnote">7</a></sup>, in terms of classification and segmentation. We will discuss the implications of the results for researchers in applied neural networks.</p>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1" role="doc-endnote">
+      <p>Graves, Alex. Supervised sequence labelling with recurrent neural networks. Vol. 385. Heidelberg: Springer, 2012. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:2" role="doc-endnote">
+      <p>S. Böck and M. Schedl, “Polyphonic piano note transcription with recurrent neural networks,” 2012 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Kyoto, 2012, pp. 121-124. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:3" role="doc-endnote">
+      <p>Parascandolo, Huttunen, and Virtanen, “Recurrent Neural Networks for Polyphonic Sound Event Detection in Real Life Recordings.” <a href="#fnref:3" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:4" role="doc-endnote">
+      <p><a href="https://github.com/yardencsGitHub/tf_syllable_segmentation_annotation">https://github.com/yardencsGitHub/tf_syllable_segmentation_annotation</a> <a href="#fnref:4" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:5" role="doc-endnote">
+      <p>Long, Jonathan, Evan Shelhamer, and Trevor Darrell. “Fully convolutional networks for semantic segmentation.” Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015. <a href="#fnref:5" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:6" role="doc-endnote">
+      <p>Yu, Fisher, and Vladlen Koltun. “Multi-scale context aggregation by dilated convolutions.” arXiv preprint arXiv:1511.07122 (2015). <a href="#fnref:6" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:7" role="doc-endnote">
+      <p>Koumura, Takuya, and Kazuo Okanoya. “Automatic Recognition of Element Classes and Boundaries in the Birdsong with Variable Sequences.” PloS one 11.7 (2016): e0159188. <a href="#fnref:7" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+
+  <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time class="dt-published" datetime="2017-11-27T00:00:00-05:00">November 27, 2017</time></p>
+
+      </footer>
+
+      <section class="page__share">
+  
+    <h4 class="page__share-title">Share on</h4>
+  
+
+  <a href="https://twitter.com/intent/tweet?via=nicholdav&text=Neural+Networks+for+Segmentation+of+Vocalizations%20https%3A%2F%2Fnicholdav.info%2F%2Ftalks%2F2017-11-27-neural-networks-for-segmentation-of-vocalizations" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fnicholdav.info%2F%2Ftalks%2F2017-11-27-neural-networks-for-segmentation-of-vocalizations" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fnicholdav.info%2F%2Ftalks%2F2017-11-27-neural-networks-for-segmentation-of-vocalizations" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/talks/2017-07-14-hybrid-vocal-classifier" class="pagination--pager" title="hybrid-vocal-classifier: a Python Package to Automate Labeling of Birdsong for Behavioral Experiments
+">Previous</a>
+    
+    
+      <a href="/talks/2018-07-13-building-&-replicating-models" class="pagination--pager" title="Building &amp; Replicating Models of Visual Search Behavior w/ Tensorflow, Nengo, &amp; Scientific Python
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+</div>
+
+    </div>
+
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+      <li><strong>Follow:</strong></li>
+    
+
+    
+
+    
+      <li><a href="/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+    
+  </ul>
+</div>
+
+<div class="page__footer-copyright">&copy; 2024 David Nicholson. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/assets/js/main.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+  </body>
+</html>

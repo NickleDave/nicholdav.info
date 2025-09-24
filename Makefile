@@ -1,4 +1,3 @@
-PY?=poetry run
 JEKYLL?=bundle exec jekyll
 
 BASEDIR=$(CURDIR)
@@ -8,6 +7,8 @@ CONFFILE=$(BASEDIR)/_config.yml
 
 GITHUB_PAGES_REMOTE=git@github.com:NickleDave/nicholdav.info.git
 GITHUB_PAGES_BRANCH=master
+
+GIT_COMMIT_HASH = $(shell git rev-parse HEAD)
 
 help:
 	@echo 'Makefile for a jekyll Web site                                            		'
@@ -37,11 +38,13 @@ else
 endif
 
 publish-to-github: build
-	$(PY) ghp-import -n -m "publish-to-github from $(GIT_COMMIT_HASH)" -b blog-build $(DESTINATIONDIR)
+# note this assumes ghp-import is already installed, e.g. with pipx
+	ghp-import -n -m "publish-to-github from $(GIT_COMMIT_HASH)" -b blog-build $(DESTINATIONDIR)
 	git push $(GITHUB_PAGES_REMOTE) blog-build:$(GITHUB_PAGES_BRANCH)
 
 publish-to-github-force: build
-	$(PY) ghp-import -n -m "publish-to-github-force from $(GIT_COMMIT_HASH)" -b blog-build $(DESTINATIONDIR)
+# note this assumes ghp-import is already installed, e.g. with pipx
+	ghp-import -n -m "publish-to-github-force from $(GIT_COMMIT_HASH)" -b blog-build $(DESTINATIONDIR)
 	git push -f $(GITHUB_PAGES_REMOTE) blog-build:$(GITHUB_PAGES_BRANCH)
 
 .PHONY: build help clean serve publish-to-github publish-to-github-force
